@@ -1,0 +1,35 @@
+name: Compilar Modulo APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Obtener codigo
+      uses: actions/checkout@v4
+
+    - name: Configurar Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Otorgar permisos a Gradle
+      run: chmod +x gradlew || true
+
+    - name: Generar Wrapper de Gradle si no existe
+      run: gradle wrapper
+
+    - name: Compilar APK
+      run: ./gradlew assembleRelease
+
+    - name: Subir APK como Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tango-patch-module
+        path: app/build/outputs/apk/release/app-release-unsigned.apk
