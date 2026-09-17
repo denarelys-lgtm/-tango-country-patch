@@ -1,0 +1,54 @@
+name: Analizar Estructuras e Interfaz
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: 'Enlace directo al APK en la Release de GitHub'
+        required: true
+        default: 'https://github.com/denarelys-lgtm/-tango-country-patch/releases/download/untagged-970f4b15d0f13925bc46/hola.apk'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Configurar Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Instalar Apktool
+      run: |
+        sudo apt-get update
+        wget https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar -O apktool.jar
+
+    - name: Descargar APK Objetivo
+      run: |
+        curl -L "${{ github.event.inputs.apk_url }}" -o tango_base.apk
+
+    - name: Descompilar Recursos y Smali
+      run: |
+        java -jar apktool.jar d tango_base.apk -o tango_src
+
+    - name: 1. Búsqueda de Layouts e Interfaz (XML)
+      run: |
+        echo "==========================================" > report.txt
+        echo "=== 1. VISTAS Y ETIQUETAS XML (LAYOUTS) ===" >> report.txt
+        echo "==========================================" >> report.txt
+        grep -rnwi "tango_src/res/layout/" -e "premium" -e "badge" -e "tag" -e "paywall" >> report.txt || true
+        echo "" >> report.txt
+
+    - name: 2. Búsqueda de Modelos de Datos y Protobuf (Smali)
+      run: |
+        echo "==========================================" >> report.txt
+        echo "=== 2. COINCIDENCIAS EN SMALI / PROTOBUF ===" >> report.txt
+        echo "==========================================" >> report.txt
+        grep -rnw "tango_src/" --include="*.smali" -e "is_premium" -e "is_private" -e "LiveBadge" -e "PremiumTag" -e "isPremium" >> report.txt || true
+
+    - name: Subir Reporte de Resultados
+      uses: actions/upload-artifact@v4
+      with:
+        name: Analisis-Tango-Reporte
+        path: report.txt
