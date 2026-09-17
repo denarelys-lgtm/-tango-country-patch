@@ -6,7 +6,7 @@ on:
       apk_url:
         description: 'Enlace directo al APK en la Release de GitHub'
         required: true
-        default: 'https://github.com/denarelys-lgtm/-tango-country-patch/releases/download/untagged-970f4b15d0f13925bc46/hola.apk'
+        default: 'https://github.com/denarelys-lgtm/-tango-country-patch/releases/download/Apk/hola.apk'
 
 jobs:
   analyze:
